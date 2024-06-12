@@ -17,16 +17,16 @@ base_url = "https://w2.brreg.no/kunngjoring/hent_nr.jsp?orgnr="
 
 # nøkkelord
 status_keywords = [
-    "slettet", 
-    "konkursåpning", 
-    "fusjonert", 
-    "avsluttet bobehandling", 
-    "innstilling av bobehandling", 
-    "sletting etter fusjon", 
-    "tvangsoppløsning", 
+    "slettet",
+    "sletting",
+    "avsluttet bobehandling",
+    "innstilling av bobehandling",
+    "konkursåpning",
+    "sletting etter fusjon",
+    "fusjonert",
+    "tvangsoppløsning",
     "varsel om tvangsoppløsning",
     "fusjonsbeslutning",
-    "sletting",
 ]
 
 def check_status(org_number):
