@@ -3,9 +3,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import re
 
-
 #### Møkkaprogramm som scraper brreg.no sorry not sorry andreas ####
-
 
 # Henr orgnr fra fil
 excel_file = 'orgnummer.xlsx'  # bruk faktisk navn og sti
@@ -34,28 +32,32 @@ def check_status(org_number):
     response = requests.get(url)
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, 'html.parser')
-        content = ' '.join(soup.stripped_strings).lower()
-        for keyword in status_keywords:
-            if keyword.lower() in content:
-                # henter dato
-                match = re.search(rf'{keyword.lower()}.*?(\d{{2}}.\d{{2}}.\d{{4}})', content)
-                if match:
-                    return keyword, match.group(1)
-                else:
-                    return keyword, "Ingen dato"
-    return None, None
+        text_lines = list(soup.stripped_strings)
+        combined_text = ' '.join(text_lines).lower()
 
-# måke gjennom liste med orgnummer
+        for keyword in status_keywords:
+            if keyword.lower() in combined_text:
+                for i in range(len(text_lines) - 1):
+                    line = text_lines[i].lower()
+                    next_line = text_lines[i + 1].lower()
+
+                    if re.match(r'\d{2}\.\d{2}\.\d{4}', line) and keyword in next_line:
+                        date = line.strip()
+                        keyword_line = next_line.strip()
+                        return keyword, date, f"{date} {keyword_line}"
+    return None, None, None
+
+# Måke gjennom orgnummer og sjekke status
 results = []
 for org_number in org_numbers:
-    status, date = check_status(org_number)
+    status, date, line = check_status(org_number)
     if status:
-        results.append((org_number, status, date))
-        print(f"Organization number {org_number} har følgende status: {status} fra dato {date}")
+        results.append((org_number, status, date, line))
+        print(f"Organization number {org_number} har følgende status: {status} fra dato {date}. Linje: {line}")
     else:
-        results.append((org_number, "Aktiv", ""))
+        results.append((org_number, "Aktiv", "", ""))
         print(f"Orgnummer: {org_number} er aktiv")
 
 # Lagre resultatet i ny excel dok
-results_df = pd.DataFrame(results, columns=['Org Nummer', 'Status', 'Dato'])
+results_df = pd.DataFrame(results, columns=['Org Nummer', 'Status', 'Dato', 'Linje'])
 results_df.to_excel('orgnr_status.xlsx', index=False)
